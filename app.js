@@ -83,8 +83,6 @@ function updateUI() {
             targetLocation.latitude, targetLocation.longitude
         );
 
-        distanceValue.textContent = distance < 10 ? distance.toFixed(1) : Math.round(distance);
-
         const bearing = calculateBearing(
             currentLocation.latitude, currentLocation.longitude,
             targetLocation.latitude, targetLocation.longitude
@@ -94,19 +92,30 @@ function updateUI() {
         debugTLon.textContent = targetLocation.longitude.toFixed(6);
         debugBearing.textContent = bearing.toFixed(1) + "°";
 
-        if (currentHeading !== null) {
-            statusMessage.textContent = "Navigating to Target";
-            // Calculate arrow rotation relative to phone's current heading
-            // If bearing is 90 (East) and heading is 90 (Phone points East), arrow points straight (0)
-            // If bearing is 90 (East) and heading is 0 (Phone points North), arrow points right (90)
-            let arrowRotation = bearing - currentHeading;
-            arrow.style.transform = `rotate(${arrowRotation}deg)`;
-            debugHeading.textContent = currentHeading.toFixed(1) + "°";
+        if (distance < 1) {
+            distanceValue.textContent = "On Location";
+            distanceValue.style.fontSize = "2.5rem"; // slightly smaller to fit
+            document.querySelector('.unit').style.display = 'none';
+            statusMessage.textContent = "📍 You have arrived!";
         } else {
-            statusMessage.textContent = "Waiting for Compass...";
+            distanceValue.textContent = distance < 10 ? distance.toFixed(1) : Math.round(distance);
+            distanceValue.style.fontSize = ""; // reset
+            document.querySelector('.unit').style.display = 'inline';
+            
+            if (currentHeading !== null) {
+                statusMessage.textContent = "Navigating to Target";
+                // Calculate arrow rotation relative to phone's current heading
+                let arrowRotation = bearing - currentHeading;
+                arrow.style.transform = `rotate(${arrowRotation}deg)`;
+                debugHeading.textContent = currentHeading.toFixed(1) + "°";
+            } else {
+                statusMessage.textContent = "Waiting for Compass...";
+            }
         }
     } else {
         distanceValue.textContent = "--";
+        distanceValue.style.fontSize = "";
+        document.querySelector('.unit').style.display = 'inline';
         arrow.style.transform = `rotate(0deg)`;
         statusMessage.textContent = "Ready. Drop a pin to start.";
         debugTLat.textContent = "--";
