@@ -10,6 +10,7 @@ const debugToggle = document.getElementById('debugToggle');
 const debugPanel = document.getElementById('debugPanel');
 const debugLat = document.getElementById('debugLat');
 const debugLon = document.getElementById('debugLon');
+const debugAccuracy = document.getElementById('debugAccuracy');
 const debugTLat = document.getElementById('debugTLat');
 const debugTLon = document.getElementById('debugTLon');
 const debugHeading = document.getElementById('debugHeading');
@@ -74,6 +75,7 @@ function updateUI() {
 
     debugLat.textContent = currentLocation.latitude.toFixed(6);
     debugLon.textContent = currentLocation.longitude.toFixed(6);
+    debugAccuracy.textContent = currentLocation.accuracy ? currentLocation.accuracy.toFixed(1) : "--";
 
     if (targetLocation) {
         const distance = calculateDistance(
@@ -177,7 +179,8 @@ function initGeolocation() {
         (position) => {
             currentLocation = {
                 latitude: position.coords.latitude,
-                longitude: position.coords.longitude
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy
             };
             updateUI();
         },
@@ -189,22 +192,40 @@ function initGeolocation() {
     );
 }
 
+let smoothedHeading = null;
+const FILTER_FACTOR = 0.15; // 15% new value, 85% old value
+
 function handleOrientation(event) {
     let alpha = event.alpha;
     let webkitCompassHeading = event.webkitCompassHeading;
+    let rawHeading = null;
 
     if (webkitCompassHeading !== undefined) {
         // iOS
-        currentHeading = webkitCompassHeading;
+        rawHeading = webkitCompassHeading;
     } else if (alpha !== null) {
         // Android (alpha is roughly 360 - compass heading, but needs absolute device orientation)
         // WebKit/Blink browsers generally use absolute alpha if absolute is supported
         // In standard absolute DeviceOrientation, alpha is the angle between device and North.
         // But the mapping is complex. Assuming a simple implementation for now:
-        currentHeading = 360 - alpha;
+        rawHeading = 360 - alpha;
     }
 
-    updateUI();
+    if (rawHeading !== null) {
+        if (smoothedHeading === null) {
+            smoothedHeading = rawHeading;
+        } else {
+            // Calculate shortest path for angle difference
+            let diff = rawHeading - smoothedHeading;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+
+            smoothedHeading += diff * FILTER_FACTOR;
+            smoothedHeading = (smoothedHeading + 360) % 360;
+        }
+        currentHeading = smoothedHeading;
+        updateUI();
+    }
 }
 
 function requestOrientationPermission() {

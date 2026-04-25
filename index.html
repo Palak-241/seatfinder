@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -32,7 +34,9 @@
                 </div>
                 <div class="pin-icon floating" id="pinIcon">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="url(#teal-gradient-pin)"/>
+                        <path
+                            d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"
+                            fill="url(#teal-gradient-pin)" />
                         <defs>
                             <linearGradient id="teal-gradient-pin" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#2dd4bf" />
@@ -55,12 +59,13 @@
                 <button id="setTargetBtn" class="primary-btn">Drop Pin (Current Location)</button>
                 <button id="clearTargetBtn" class="secondary-btn hidden">Clear Pin</button>
             </div>
-            
+
             <!-- Debug Info Toggle -->
             <div class="debug-toggle" id="debugToggle">Show Debug Info</div>
             <div class="debug-panel hidden" id="debugPanel">
                 <div>Lat: <span id="debugLat">--</span></div>
                 <div>Lon: <span id="debugLon">--</span></div>
+                <div>Accuracy: <span id="debugAccuracy">--</span> m</div>
                 <div>Target Lat: <span id="debugTLat">--</span></div>
                 <div>Target Lon: <span id="debugTLon">--</span></div>
                 <div>Heading: <span id="debugHeading">--</span></div>
@@ -68,16 +73,18 @@
             </div>
         </main>
     </div>
-    
+
     <!-- iOS permission overlay -->
     <div id="permissionOverlay" class="overlay hidden">
         <div class="overlay-card">
             <h2>Compass Permission Required</h2>
-            <p>This application needs access to your device's orientation sensors to point you in the right direction.</p>
+            <p>This application needs access to your device's orientation sensors to point you in the right direction.
+            </p>
             <button id="grantPermissionBtn" class="primary-btn">Grant Permission</button>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>
