@@ -43,10 +43,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const Δφ = toRadians(lat2 - lat1);
     const Δλ = toRadians(lon2 - lon1);
 
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // in metres
 }
@@ -59,9 +59,9 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 
     const y = Math.sin(λ2 - λ1) * Math.cos(φ2);
     const x = Math.cos(φ1) * Math.sin(φ2) -
-              Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+        Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
     const θ = Math.atan2(y, x);
-    
+
     return (toDegrees(θ) + 360) % 360; // in degrees
 }
 
@@ -71,7 +71,7 @@ function updateUI() {
         statusMessage.textContent = "Waiting for GPS...";
         return;
     }
-    
+
     debugLat.textContent = currentLocation.latitude.toFixed(6);
     debugLon.textContent = currentLocation.longitude.toFixed(6);
 
@@ -80,9 +80,9 @@ function updateUI() {
             currentLocation.latitude, currentLocation.longitude,
             targetLocation.latitude, targetLocation.longitude
         );
-        
+
         distanceValue.textContent = distance < 10 ? distance.toFixed(1) : Math.round(distance);
-        
+
         const bearing = calculateBearing(
             currentLocation.latitude, currentLocation.longitude,
             targetLocation.latitude, targetLocation.longitude
@@ -116,15 +116,31 @@ function updateUI() {
     }
 }
 
+let isAnimating = false;
+
 // Event Listeners
 setTargetBtn.addEventListener('click', () => {
-    if (currentLocation) {
-        targetLocation = { ...currentLocation };
+    if (currentLocation && !isAnimating) {
+        isAnimating = true;
         setTargetBtn.classList.add('hidden');
-        clearTargetBtn.classList.remove('hidden');
-        statusMessage.textContent = "Target set! Walk away to see the distance.";
-        updateUI();
-    } else {
+        statusMessage.textContent = "Dropping pin...";
+
+        const pinIcon = document.getElementById('pinIcon');
+        const arrow = document.getElementById('arrow');
+
+        pinIcon.classList.remove('floating');
+        pinIcon.classList.add('dropping');
+
+        setTimeout(() => {
+            targetLocation = { ...currentLocation };
+            pinIcon.classList.add('hidden');
+            arrow.classList.add('active');
+            clearTargetBtn.classList.remove('hidden');
+            isAnimating = false;
+            updateUI();
+        }, 600); // Wait for drop animation
+
+    } else if (!currentLocation) {
         alert("Cannot set target: GPS location not yet available.");
     }
 });
@@ -133,6 +149,14 @@ clearTargetBtn.addEventListener('click', () => {
     targetLocation = null;
     clearTargetBtn.classList.add('hidden');
     setTargetBtn.classList.remove('hidden');
+
+    const pinIcon = document.getElementById('pinIcon');
+    const arrow = document.getElementById('arrow');
+
+    arrow.classList.remove('active');
+    pinIcon.classList.remove('hidden', 'dropping');
+    pinIcon.classList.add('floating');
+
     updateUI();
 });
 
@@ -179,7 +203,7 @@ function handleOrientation(event) {
         // But the mapping is complex. Assuming a simple implementation for now:
         currentHeading = 360 - alpha;
     }
-    
+
     updateUI();
 }
 
@@ -214,7 +238,7 @@ function initApp() {
         // Automatically attach for non-iOS
         requestOrientationPermission();
     }
-    
+
     initGeolocation();
 }
 
