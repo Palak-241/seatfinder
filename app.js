@@ -3,6 +3,7 @@ const arrow = document.getElementById('arrow');
 const distanceValue = document.getElementById('distanceValue');
 const statusMessage = document.getElementById('statusMessage');
 const setTargetBtn = document.getElementById('setTargetBtn');
+const restoreTargetBtn = document.getElementById('restoreTargetBtn');
 const clearTargetBtn = document.getElementById('clearTargetBtn');
 
 // Debug Elements
@@ -23,8 +24,12 @@ const grantPermissionBtn = document.getElementById('grantPermissionBtn');
 // State
 let currentLocation = null;
 let targetLocation = null;
+let previousTargetLocation = null;
 let currentHeading = null;
 let watchId = null;
+
+const locationBuffer = [];
+const BUFFER_SIZE = 5;
 
 // Constants
 const R = 6371e3; // Earth's radius in metres
@@ -101,7 +106,7 @@ function updateUI() {
             distanceValue.textContent = distance < 10 ? distance.toFixed(1) : Math.round(distance);
             distanceValue.style.fontSize = ""; // reset
             document.querySelector('.unit').style.display = 'inline';
-            
+
             if (currentHeading !== null) {
                 statusMessage.textContent = "Navigating to Target";
                 // Calculate arrow rotation relative to phone's current heading
@@ -125,6 +130,13 @@ function updateUI() {
             debugHeading.textContent = currentHeading.toFixed(1) + "°";
         }
     }
+
+    setTargetBtn.disabled = !currentLocation || currentLocation.accuracy > 20;
+    setTargetBtn.title = setTargetBtn.disabled ? "Waiting for accurate GPS..." : "";
+
+    if (currentLocation.accuracy > 15) {
+        statusMessage.textContent = `⚠️ Low GPS accuracy (±${Math.round(currentLocation.accuracy)}m)`;
+    }
 }
 
 let isAnimating = false;
@@ -134,6 +146,7 @@ setTargetBtn.addEventListener('click', () => {
     if (currentLocation && !isAnimating) {
         isAnimating = true;
         setTargetBtn.classList.add('hidden');
+        restoreTargetBtn.classList.add('hidden');
         statusMessage.textContent = "Dropping pin...";
 
         const pinIcon = document.getElementById('pinIcon');
@@ -157,9 +170,11 @@ setTargetBtn.addEventListener('click', () => {
 });
 
 clearTargetBtn.addEventListener('click', () => {
+    previousTargetLocation = { ...targetLocation };
     targetLocation = null;
     clearTargetBtn.classList.add('hidden');
     setTargetBtn.classList.remove('hidden');
+    restoreTargetBtn.classList.remove('hidden');
 
     const pinIcon = document.getElementById('pinIcon');
     const arrow = document.getElementById('arrow');
@@ -169,6 +184,31 @@ clearTargetBtn.addEventListener('click', () => {
     pinIcon.classList.add('floating');
 
     updateUI();
+});
+
+restoreTargetBtn.addEventListener('click', () => {
+    if (previousTargetLocation && !isAnimating) {
+        isAnimating = true;
+        setTargetBtn.classList.add('hidden');
+        restoreTargetBtn.classList.add('hidden');
+        statusMessage.textContent = "Restoring pin...";
+
+        const pinIcon = document.getElementById('pinIcon');
+        const arrow = document.getElementById('arrow');
+
+        pinIcon.classList.remove('floating');
+        pinIcon.classList.add('dropping');
+
+        setTimeout(() => {
+            targetLocation = { ...previousTargetLocation };
+            previousTargetLocation = null;
+            pinIcon.classList.add('hidden');
+            arrow.classList.add('active');
+            clearTargetBtn.classList.remove('hidden');
+            isAnimating = false;
+            updateUI();
+        }, 600);
+    }
 });
 
 debugToggle.addEventListener('click', () => {
@@ -186,9 +226,17 @@ function initGeolocation() {
 
     watchId = navigator.geolocation.watchPosition(
         (position) => {
+            if (position.coords.accuracy > 30) return; // ignore readings worse than 30m
+
+            locationBuffer.push({ lat: position.coords.latitude, lon: position.coords.longitude });
+            if (locationBuffer.length > BUFFER_SIZE) locationBuffer.shift();
+
+            const avgLat = locationBuffer.reduce((s, p) => s + p.lat, 0) / locationBuffer.length;
+            const avgLon = locationBuffer.reduce((s, p) => s + p.lon, 0) / locationBuffer.length;
+
             currentLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
+                latitude: avgLat,
+                longitude: avgLon,
                 accuracy: position.coords.accuracy
             };
             updateUI();
@@ -197,7 +245,7 @@ function initGeolocation() {
             console.error("Geolocation error:", error);
             statusMessage.textContent = "GPS Error: " + error.message;
         },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
     );
 }
 
