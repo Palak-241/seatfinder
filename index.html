@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Where's My Seat?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Where's My Seat?</h1>
+            <p class="subtitle">Navigate back to your exact location.</p>
+        </header>
+
+        <main class="glass-card">
+            <div class="compass-container">
+                <div class="compass-ring"></div>
+                <div class="compass-arrow" id="arrow">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="50,10 80,90 50,75 20,90" fill="url(#teal-gradient)" />
+                        <defs>
+                            <linearGradient id="teal-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#2dd4bf" />
+                                <stop offset="100%" stop-color="#0f766e" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="distance-display">
+                    <span id="distanceValue">--</span>
+                    <span class="unit">meters</span>
+                </div>
+                <div class="status" id="statusMessage">Waiting for GPS and Compass...</div>
+            </div>
+
+            <div class="controls">
+                <button id="setTargetBtn" class="primary-btn">Drop Pin (Current Location)</button>
+                <button id="clearTargetBtn" class="secondary-btn hidden">Clear Pin</button>
+            </div>
+            
+            <!-- Debug Info Toggle -->
+            <div class="debug-toggle" id="debugToggle">Show Debug Info</div>
+            <div class="debug-panel hidden" id="debugPanel">
+                <div>Lat: <span id="debugLat">--</span></div>
+                <div>Lon: <span id="debugLon">--</span></div>
+                <div>Target Lat: <span id="debugTLat">--</span></div>
+                <div>Target Lon: <span id="debugTLon">--</span></div>
+                <div>Heading: <span id="debugHeading">--</span></div>
+                <div>Bearing: <span id="debugBearing">--</span></div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- iOS permission overlay -->
+    <div id="permissionOverlay" class="overlay hidden">
+        <div class="overlay-card">
+            <h2>Compass Permission Required</h2>
+            <p>This application needs access to your device's orientation sensors to point you in the right direction.</p>
+            <button id="grantPermissionBtn" class="primary-btn">Grant Permission</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
